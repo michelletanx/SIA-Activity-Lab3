@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.2.2/css/bootstrap.min.css}" />
+</head>
+<body>
+    <div class="container">
+        <h2>Add New Person</h2>
+        <form action="#" th:action="@{/person}" th:object="${person}" method="POST">
+            <input type="hidden" th:value="${description}" name="description" />
+            <div class="form-group">
+                <input class="form-control" type="text" th:field="*{name}" id="name" placeholder="Name" />
+            </div>
+            <button type="submit" class="btn btn-outline-primary">Add Person</button>
+        </form>
+    </div>
+    
+    
+    
+</body>
+</html>

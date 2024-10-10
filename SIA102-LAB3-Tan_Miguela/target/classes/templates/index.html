@@ -1,0 +1,157 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.2.2/css/bootstrap.min.css}" />
+    <style>
+        .table-blue {
+            border: 2px solid rgb(25, 25, 66);
+        }
+
+        .table-blue th, .table-blue td {
+            border: 1px solid rgb(25, 25, 66);
+        }
+
+        /* New class for completed task row */
+        .task-complete {
+            background-color: #ee69a0; /* Pinkish color */
+        }
+
+        /* Ensure select and input fields fit text properly */
+        .form-control {
+            padding: 0.5rem 0.3rem;
+            text-align: center;
+            font-size: small;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>To Do List:</h1>
+    <hr />
+
+    <!-- Filter Form -->
+<!-- Filter Form -->
+<form method="get" action="/filter">
+    <div class="row mb-3">
+        <div class="col">
+            <input type="text" name="taskDescription" placeholder="Task Description" class="form-control">
+        </div>
+        <div class="col">
+            <select name="personId" class="form-control">
+                <option value="">Assigned Person</option>
+                <th:block th:each="person : ${persons}">
+                    <option th:value="${person.id}" th:text="${person.name}"></option>
+                </th:block>
+            </select>
+        </div>
+        <div class="col">
+            <select name="isComplete" class="form-control">
+                <option value="">Completion Status</option>
+                <option value="true">Completed</option>
+                <option value="false">Not Completed</option>
+            </select>
+        </div>
+        <div class="col">
+            <input type="date" name="completionDate" placeholder="Completion Date" class="form-control">
+        </div>
+        <div class="col">
+            <button type="submit" class="btn btn-primary" style="margin-left: 9px;">Filter</button>
+            <span class="ms-2" style="font-size: xx-small; color: #666; display: block; padding-right: 50px; text-align: center;">Press again to remove filter</span>
+        </div>
+    </div>
+</form>
+
+
+    <!-- Todo Items Table -->
+    <table class="table table-bordered table-striped table-blue">
+        <thead>
+        <tr>
+            <th>Task No.</th>
+            <th>Task Description</th>
+            <th>Assigned Person</th>
+            <th>Completion Date</th>
+            <th>Options</th>
+        </tr>
+        </thead>
+        <tbody id="todoItemsBody">
+            <tr th:each="item, iterStat : ${todoItems}" 
+                th:id="'row-' + ${item.id}" 
+                th:class="${item.isComplete} ? 'task-complete'">
+                <td th:text="${iterStat.index + 1}"></td> <!-- This line returns the Task No. -->
+                <td th:text="${item.description}"></td>
+                <td>
+                    <span th:text="${item.person.name}" th:if="${item.person}"></span>
+                    <span th:if="${item.person == null}">No person assigned</span>
+                </td>
+                <td th:text="${item.completionDate != null ? item.completionDate : 'No Date Set'}"></td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="form-check me-4">
+                            <input class="form-check-input" type="checkbox" th:id="${item.id}" 
+                                   th:value="${item.id}" th:checked="${item.isComplete}" 
+                                   onchange="toggleRowColor(this)">
+                            <label class="form-check-label" th:for="${item.id}">
+                                Finished
+                            </label>
+                        </div>
+                        <a class="btn btn-danger" th:href="@{/delete/{id}(id=${item.id})}">
+                            <i class="bi bi-trash-fill"></i> X 
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="text-center">
+        <p><a class="btn btn-outline-primary" href="/create-todo">
+            <i class="bi-plus-square-fill"></i> Add Task</a>
+        </p>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function toggleRowColor(checkbox) {
+        const row = checkbox.closest('tr');
+        const todoId = checkbox.value;
+        const isComplete = checkbox.checked;
+
+        // Update the UI immediately for user feedback
+        if (isComplete) {
+            row.classList.add('task-complete');
+            row.classList.remove('task-incomplete');
+        } else {
+            row.classList.add('task-incomplete');
+            row.classList.remove('task-complete');
+        }
+
+        // Send the update to the server
+        fetch(`/api/todos/${todoId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ isComplete: isComplete }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            // Optionally reload the page to reflect changes
+            location.reload();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+</body>
+</html>
